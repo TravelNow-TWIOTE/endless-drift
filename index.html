@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 <title>Endless Drift</title>
 <link rel="stylesheet" href="style.css">
@@ -14,10 +13,10 @@
 
 <div id="instructionsBox">
 <h2>How to Play</h2>
-<p>Hold SPACE to drift right.</p>
-<p>Release SPACE to drift left.</p>
-<p>Stay on the road as long as possible.</p>
-<p>Your score increases over time.</p>
+<p>Hold SPACE to drift right</p>
+<p>Release SPACE to drift left</p>
+<p>Stay on the road</p>
+<p>Press R to restart if you crash</p>
 <button id="closeInstructions">Close</button>
 </div>
 
@@ -30,13 +29,8 @@ const btn = document.getElementById("instructionsBtn");
 const box = document.getElementById("instructionsBox");
 const close = document.getElementById("closeInstructions");
 
-btn.onclick = () => {
-box.style.display = "block";
-};
-
-close.onclick = () => {
-box.style.display = "none";
-};
+btn.onclick = () => box.style.display = "block";
+close.onclick = () => box.style.display = "none";
 </script>
 
 </body>
