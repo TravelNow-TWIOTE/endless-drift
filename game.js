@@ -4,37 +4,46 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+let drifting = false;
+let gameOver = false;
+
 let car = {
-x: canvas.width/2,
-y: canvas.height/2,
-angle: 0,
-speed: 4
+x: canvas.width / 2,
+y: canvas.height / 2,
+size: 20
 };
 
-let drifting = false;
+let roadWidth = 120;
+let roadX = canvas.width / 2;
 
-document.addEventListener("keydown", (e)=>{
-if(e.code === "Space"){
-drifting = true;
-}
+let score = 0;
+
+document.addEventListener("keydown", e => {
+if(e.code === "Space") drifting = true;
 });
 
-document.addEventListener("keyup", (e)=>{
-if(e.code === "Space"){
-drifting = false;
-}
+document.addEventListener("keyup", e => {
+if(e.code === "Space") drifting = false;
 });
 
 function update(){
 
+if(gameOver) return;
+
+score += 0.1;
+
 if(drifting){
-car.angle += 0.05;
+roadX += 3;
 }else{
-car.angle -= 0.03;
+roadX -= 3;
 }
 
-car.x += Math.cos(car.angle) * car.speed;
-car.y += Math.sin(car.angle) * car.speed;
+if(
+car.x < roadX - roadWidth/2 ||
+car.x > roadX + roadWidth/2
+){
+gameOver = true;
+}
 
 }
 
@@ -42,15 +51,20 @@ function draw(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-ctx.save();
-
-ctx.translate(car.x, car.y);
-ctx.rotate(car.angle);
+ctx.fillStyle = "#333";
+ctx.fillRect(roadX - roadWidth/2, 0, roadWidth, canvas.height);
 
 ctx.fillStyle = "red";
-ctx.fillRect(-20,-10,40,20);
+ctx.fillRect(car.x - car.size/2, car.y - car.size/2, car.size, car.size);
 
-ctx.restore();
+ctx.fillStyle = "white";
+ctx.font = "20px Arial";
+ctx.fillText("Score: " + Math.floor(score), 20, 40);
+
+if(gameOver){
+ctx.font = "50px Arial";
+ctx.fillText("GAME OVER", canvas.width/2 - 150, canvas.height/2);
+}
 
 }
 
