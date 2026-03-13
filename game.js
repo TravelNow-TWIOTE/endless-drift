@@ -16,13 +16,9 @@ size:20
 
 let roadWidth = 140;
 let segmentHeight = 120;
-let scrollSpeed = 5;
+let scrollSpeed = 4;
 
 let segments = [];
-
-function newSegment(x,y){
-return {x,y};
-}
 
 function restart(){
 
@@ -33,7 +29,10 @@ gameOver = false;
 let startX = canvas.width/2;
 
 for(let i=0;i<12;i++){
-segments.push(newSegment(startX, canvas.height - i*segmentHeight));
+segments.push({
+x:startX,
+y:canvas.height - i*segmentHeight
+});
 }
 
 }
@@ -42,15 +41,21 @@ restart();
 
 document.addEventListener("keydown", e=>{
 
-if(e.code==="Space") drifting = true;
+if(e.code==="Space"){
+drifting=true;
+}
 
-if(e.code==="KeyR") restart();
+if(e.code==="KeyR"){
+restart();
+}
 
 });
 
 document.addEventListener("keyup", e=>{
 
-if(e.code==="Space") drifting = false;
+if(e.code==="Space"){
+drifting=false;
+}
 
 });
 
@@ -74,11 +79,14 @@ let last = segments[segments.length-1];
 
 if(last.y > canvas.height){
 
-let direction = Math.random() > 0.5 ? 1 : -1;
+let direction = Math.random()>0.5 ? 1 : -1;
 
-let newX = last.x + direction * (60 + Math.random()*80);
+let newX = last.x + direction*(60 + Math.random()*80);
 
-segments.push(newSegment(newX, last.y - segmentHeight));
+segments.push({
+x:newX,
+y:last.y - segmentHeight
+});
 
 segments.shift();
 
@@ -90,11 +98,11 @@ s => car.y > s.y && car.y < s.y + segmentHeight
 
 if(playerSegment){
 
-let roadLeft = playerSegment.x - roadWidth/2;
-let roadRight = playerSegment.x + roadWidth/2;
+let left = playerSegment.x - roadWidth/2;
+let right = playerSegment.x + roadWidth/2;
 
-if(car.x < roadLeft || car.x > roadRight){
-gameOver = true;
+if(car.x < left || car.x > right){
+gameOver=true;
 }
 
 }
@@ -143,13 +151,10 @@ ctx.fillText("Press R to Restart",canvas.width/2-100,canvas.height/2+40);
 
 }
 
-function gameLoop(){
-
+function loop(){
 update();
 draw();
-
-requestAnimationFrame(gameLoop);
-
+requestAnimationFrame(loop);
 }
 
-gameLoop();
+loop();
