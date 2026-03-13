@@ -16,6 +16,8 @@ top:10px;
 width:100%;
 text-align:center;
 font-size:40px;
+color:#ffffff;
+text-shadow:0 0 10px black;
 z-index:2;
 }
 
@@ -27,6 +29,9 @@ padding:10px 20px;
 font-size:16px;
 cursor:pointer;
 z-index:2;
+background:#ffffff;
+border:none;
+border-radius:6px;
 }
 
 #instructionsBox{
@@ -34,7 +39,8 @@ position:absolute;
 top:80px;
 right:20px;
 width:250px;
-background:#222;
+background:white;
+color:black;
 padding:20px;
 border-radius:10px;
 display:none;
