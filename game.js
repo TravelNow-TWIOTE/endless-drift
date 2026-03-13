@@ -6,55 +6,53 @@ canvas.height = window.innerHeight;
 
 let drifting = false;
 let gameOver = false;
-
 let score = 0;
 
 let car = {
 x: canvas.width/2,
-y: canvas.height*0.7,
+y: canvas.height*0.75,
 size:20
 };
 
 let roadWidth = 140;
 let segmentHeight = 120;
+let scrollSpeed = 5;
 
 let segments = [];
 
-function newSegment(x){
-return {x:x};
+function newSegment(x,y){
+return {x,y};
 }
 
-segments.push(newSegment(canvas.width/2));
+function restart(){
+
+segments = [];
+score = 0;
+gameOver = false;
+
+let startX = canvas.width/2;
+
+for(let i=0;i<12;i++){
+segments.push(newSegment(startX, canvas.height - i*segmentHeight));
+}
+
+}
+
+restart();
 
 document.addEventListener("keydown", e=>{
 
-if(e.code==="Space"){
-drifting = true;
-}
+if(e.code==="Space") drifting = true;
 
-if(gameOver && e.code==="KeyR"){
-restart();
-}
+if(e.code==="KeyR") restart();
 
 });
 
 document.addEventListener("keyup", e=>{
 
-if(e.code==="Space"){
-drifting = false;
-}
+if(e.code==="Space") drifting = false;
 
 });
-
-function restart(){
-
-segments=[];
-segments.push(newSegment(canvas.width/2));
-
-score=0;
-gameOver=false;
-
-}
 
 function update(){
 
@@ -62,33 +60,43 @@ if(gameOver) return;
 
 score += 0.1;
 
-let last = segments[segments.length-1];
-
 if(drifting){
-last.x += 3;
+car.x += 4;
 }else{
-last.x -= 3;
+car.x -= 4;
 }
 
-if(segments.length < canvas.height/segmentHeight + 3){
+for(let seg of segments){
+seg.y += scrollSpeed;
+}
 
-let direction = Math.random()>0.5 ? 1 : -1;
+let last = segments[segments.length-1];
+
+if(last.y > canvas.height){
+
+let direction = Math.random() > 0.5 ? 1 : -1;
 
 let newX = last.x + direction * (60 + Math.random()*80);
 
-segments.push(newSegment(newX));
+segments.push(newSegment(newX, last.y - segmentHeight));
 
-}
-
-if(segments.length > 20){
 segments.shift();
+
 }
 
-let roadLeft = last.x - roadWidth/2;
-let roadRight = last.x + roadWidth/2;
+let playerSegment = segments.find(
+s => car.y > s.y && car.y < s.y + segmentHeight
+);
+
+if(playerSegment){
+
+let roadLeft = playerSegment.x - roadWidth/2;
+let roadRight = playerSegment.x + roadWidth/2;
 
 if(car.x < roadLeft || car.x > roadRight){
 gameOver = true;
+}
+
 }
 
 }
@@ -97,17 +105,13 @@ function draw(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-for(let i=0;i<segments.length;i++){
-
-let seg = segments[i];
-
-let y = canvas.height - i*segmentHeight;
+for(let seg of segments){
 
 ctx.fillStyle="#444";
 
 ctx.fillRect(
-seg.x - roadWidth/2,
-y,
+seg.x-roadWidth/2,
+seg.y,
 roadWidth,
 segmentHeight
 );
@@ -117,8 +121,8 @@ segmentHeight
 ctx.fillStyle="red";
 
 ctx.fillRect(
-car.x - car.size/2,
-car.y - car.size/2,
+car.x-car.size/2,
+car.y-car.size/2,
 car.size,
 car.size
 );
