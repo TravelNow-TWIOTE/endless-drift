@@ -15,43 +15,52 @@ y: canvas.height*0.7,
 size:20
 };
 
-let roadWidth = 120;
+let roadWidth = 140;
+let segmentHeight = 120;
 
 let segments = [];
-let segmentLength = 120;
 
-function createSegment(x){
-return {
-x:x
-};
+function newSegment(x){
+return {x:x};
 }
 
-segments.push(createSegment(canvas.width/2));
+segments.push(newSegment(canvas.width/2));
 
 document.addEventListener("keydown", e=>{
-if(e.code==="Space") drifting = true;
+
+if(e.code==="Space"){
+drifting = true;
+}
 
 if(gameOver && e.code==="KeyR"){
 restart();
 }
+
 });
 
 document.addEventListener("keyup", e=>{
-if(e.code==="Space") drifting = false;
+
+if(e.code==="Space"){
+drifting = false;
+}
+
 });
 
 function restart(){
+
 segments=[];
-segments.push(createSegment(canvas.width/2));
+segments.push(newSegment(canvas.width/2));
+
 score=0;
 gameOver=false;
+
 }
 
 function update(){
 
 if(gameOver) return;
 
-score+=0.1;
+score += 0.1;
 
 let last = segments[segments.length-1];
 
@@ -61,13 +70,13 @@ last.x += 3;
 last.x -= 3;
 }
 
-if(segments.length < canvas.height/segmentLength + 2){
+if(segments.length < canvas.height/segmentHeight + 3){
 
-let direction = Math.random() > 0.5 ? 1 : -1;
+let direction = Math.random()>0.5 ? 1 : -1;
 
-let newX = last.x + direction * (Math.random()*120);
+let newX = last.x + direction * (60 + Math.random()*80);
 
-segments.push(createSegment(newX));
+segments.push(newSegment(newX));
 
 }
 
@@ -90,17 +99,29 @@ ctx.clearRect(0,0,canvas.width,canvas.height);
 
 for(let i=0;i<segments.length;i++){
 
-let s = segments[i];
+let seg = segments[i];
 
-let y = canvas.height - i*segmentLength;
+let y = canvas.height - i*segmentHeight;
 
 ctx.fillStyle="#444";
-ctx.fillRect(s.x-roadWidth/2,y,roadWidth,segmentLength);
+
+ctx.fillRect(
+seg.x - roadWidth/2,
+y,
+roadWidth,
+segmentHeight
+);
 
 }
 
 ctx.fillStyle="red";
-ctx.fillRect(car.x-car.size/2,car.y-car.size/2,car.size,car.size);
+
+ctx.fillRect(
+car.x - car.size/2,
+car.y - car.size/2,
+car.size,
+car.size
+);
 
 ctx.fillStyle="white";
 ctx.font="20px Arial";
@@ -111,8 +132,8 @@ if(gameOver){
 ctx.font="50px Arial";
 ctx.fillText("GAME OVER",canvas.width/2-150,canvas.height/2);
 
-ctx.font="20px Arial";
-ctx.fillText("Press R to Restart",canvas.width/2-80,canvas.height/2+40);
+ctx.font="22px Arial";
+ctx.fillText("Press R to Restart",canvas.width/2-100,canvas.height/2+40);
 
 }
 
