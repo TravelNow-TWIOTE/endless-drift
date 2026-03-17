@@ -4,59 +4,51 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let drifting = false;
+let turningRight = false;
 let gameOver = false;
 let score = 0;
 
 let car = {
 x: canvas.width/2,
-y: canvas.height*0.75,
-size:20
+y: canvas.height/2,
+size:20,
+angle:0
 };
 
-let roadWidth = 140;
-let segmentHeight = 120;
-let scrollSpeed = 4;
+let platforms = [];
 
-let segments = [];
+function createPlatform(x,y){
+return {x,y,width:120,height:20};
+}
 
 function restart(){
 
-segments = [];
+platforms = [];
 score = 0;
 gameOver = false;
 
 let startX = canvas.width/2;
+let startY = canvas.height/2;
 
-for(let i=0;i<12;i++){
-segments.push({
-x:startX,
-y:canvas.height - i*segmentHeight
-});
+for(let i=0;i<8;i++){
+platforms.push(createPlatform(startX + i*120, startY));
 }
+
+car.x = startX;
+car.y = startY;
+car.angle = 0;
 
 }
 
 restart();
 
 document.addEventListener("keydown", e=>{
-
-if(e.code==="Space"){
-drifting=true;
-}
-
-if(e.code==="KeyR"){
-restart();
-}
-
+if(e.code==="Space") turningRight = true;
+if(e.code==="KeyR") restart();
 });
 
 document.addEventListener("keyup", e=>{
-
-if(e.code==="Space"){
-drifting=false;
-}
-
+if(e.code==="Space") turningRight = false;
 });
 
 function update(){
@@ -65,45 +57,46 @@ if(gameOver) return;
 
 score += 0.1;
 
-if(drifting){
-car.x += 4;
+if(turningRight){
+car.angle += 0.05;
 }else{
-car.x -= 4;
+car.angle -= 0.05;
 }
 
-for(let seg of segments){
-seg.y += scrollSpeed;
+car.x += Math.cos(car.angle) * 3;
+car.y += Math.sin(car.angle) * 3;
+
+let onPlatform = false;
+
+for(let p of platforms){
+
+if(
+car.x > p.x &&
+car.x < p.x + p.width &&
+car.y > p.y &&
+car.y < p.y + p.height
+){
+onPlatform = true;
 }
-
-let last = segments[segments.length-1];
-
-if(last.y > canvas.height){
-
-let direction = Math.random()>0.5 ? 1 : -1;
-
-let newX = last.x + direction*(60 + Math.random()*80);
-
-segments.push({
-x:newX,
-y:last.y - segmentHeight
-});
-
-segments.shift();
 
 }
 
-let playerSegment = segments.find(
-s => car.y > s.y && car.y < s.y + segmentHeight
-);
-
-if(playerSegment){
-
-let left = playerSegment.x - roadWidth/2;
-let right = playerSegment.x + roadWidth/2;
-
-if(car.x < left || car.x > right){
-gameOver=true;
+if(!onPlatform){
+gameOver = true;
 }
+
+let last = platforms[platforms.length-1];
+
+if(last.x < canvas.width){
+
+let direction = Math.random() > 0.5 ? 1 : -1;
+
+platforms.push(createPlatform(
+last.x + 120,
+last.y + direction*80
+));
+
+platforms.shift();
 
 }
 
@@ -113,16 +106,11 @@ function draw(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-for(let seg of segments){
+for(let p of platforms){
 
-ctx.fillStyle="#444";
+ctx.fillStyle="#3aa655";
 
-ctx.fillRect(
-seg.x-roadWidth/2,
-seg.y,
-roadWidth,
-segmentHeight
-);
+ctx.fillRect(p.x,p.y,p.width,p.height);
 
 }
 
@@ -144,17 +132,19 @@ if(gameOver){
 ctx.font="50px Arial";
 ctx.fillText("GAME OVER",canvas.width/2-150,canvas.height/2);
 
-ctx.font="22px Arial";
-ctx.fillText("Press R to Restart",canvas.width/2-100,canvas.height/2+40);
+ctx.font="20px Arial";
+ctx.fillText("Press R to Restart",canvas.width/2-90,canvas.height/2+40);
 
 }
 
 }
 
 function loop(){
+
 update();
 draw();
 requestAnimationFrame(loop);
+
 }
 
 loop();
