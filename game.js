@@ -4,52 +4,34 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-let turningRight = false;
+let drifting = false;
 let gameOver = false;
 let score = 0;
 
-let car = {
-x: canvas.width/2,
-y: canvas.height/2,
-size:20,
-angle:0
+const car = {
+x: canvas.width / 2,
+y: canvas.height * 0.75,
+size: 20
 };
 
-let platforms = [];
+let roadCenter = canvas.width / 2;
+const roadWidth = 160;
 
-function createPlatform(x,y){
-return {x,y,width:120,height:20};
-}
+document.addEventListener("keydown", e => {
+if(e.code === "Space") drifting = true;
+if(e.code === "KeyR") restart();
+});
+
+document.addEventListener("keyup", e => {
+if(e.code === "Space") drifting = false;
+});
 
 function restart(){
-
-platforms = [];
-score = 0;
 gameOver = false;
-
-let startX = canvas.width/2;
-let startY = canvas.height/2;
-
-for(let i=0;i<8;i++){
-platforms.push(createPlatform(startX + i*120, startY));
+score = 0;
+car.x = canvas.width / 2;
+roadCenter = canvas.width / 2;
 }
-
-car.x = startX;
-car.y = startY;
-car.angle = 0;
-
-}
-
-restart();
-
-document.addEventListener("keydown", e=>{
-if(e.code==="Space") turningRight = true;
-if(e.code==="KeyR") restart();
-});
-
-document.addEventListener("keyup", e=>{
-if(e.code==="Space") turningRight = false;
-});
 
 function update(){
 
@@ -57,47 +39,22 @@ if(gameOver) return;
 
 score += 0.1;
 
-if(turningRight){
-car.angle += 0.05;
+/* car movement */
+if(drifting){
+car.x += 4;
 }else{
-car.angle -= 0.05;
+car.x -= 4;
 }
 
-car.x += Math.cos(car.angle) * 3;
-car.y += Math.sin(car.angle) * 3;
+/* road zig-zag */
+roadCenter += (Math.random() - 0.5) * 3;
 
-let onPlatform = false;
+/* collision */
+let left = roadCenter - roadWidth/2;
+let right = roadCenter + roadWidth/2;
 
-for(let p of platforms){
-
-if(
-car.x > p.x &&
-car.x < p.x + p.width &&
-car.y > p.y &&
-car.y < p.y + p.height
-){
-onPlatform = true;
-}
-
-}
-
-if(!onPlatform){
+if(car.x < left || car.x > right){
 gameOver = true;
-}
-
-let last = platforms[platforms.length-1];
-
-if(last.x < canvas.width){
-
-let direction = Math.random() > 0.5 ? 1 : -1;
-
-platforms.push(createPlatform(
-last.x + 120,
-last.y + direction*80
-));
-
-platforms.shift();
-
 }
 
 }
@@ -106,45 +63,43 @@ function draw(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-for(let p of platforms){
-
-ctx.fillStyle="#3aa655";
-
-ctx.fillRect(p.x,p.y,p.width,p.height);
-
-}
-
-ctx.fillStyle="red";
-
+/* road */
+ctx.fillStyle = "#444";
 ctx.fillRect(
-car.x-car.size/2,
-car.y-car.size/2,
+roadCenter - roadWidth/2,
+0,
+roadWidth,
+canvas.height
+);
+
+/* car */
+ctx.fillStyle = "red";
+ctx.fillRect(
+car.x - car.size/2,
+car.y - car.size/2,
 car.size,
 car.size
 );
 
-ctx.fillStyle="white";
-ctx.font="20px Arial";
-ctx.fillText("Score: "+Math.floor(score),20,40);
+/* score */
+ctx.fillStyle = "white";
+ctx.font = "20px Arial";
+ctx.fillText("Score: " + Math.floor(score), 20, 40);
 
+/* game over */
 if(gameOver){
-
-ctx.font="50px Arial";
-ctx.fillText("GAME OVER",canvas.width/2-150,canvas.height/2);
-
-ctx.font="20px Arial";
-ctx.fillText("Press R to Restart",canvas.width/2-90,canvas.height/2+40);
-
+ctx.font = "50px Arial";
+ctx.fillText("GAME OVER", canvas.width/2 - 150, canvas.height/2);
+ctx.font = "20px Arial";
+ctx.fillText("Press R to Restart", canvas.width/2 - 90, canvas.height/2 + 40);
 }
 
 }
 
 function loop(){
-
 update();
 draw();
 requestAnimationFrame(loop);
-
 }
 
 loop();
