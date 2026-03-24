@@ -8,125 +8,166 @@ let turningRight = false;
 let gameOver = false;
 let score = 0;
 
-let car = {
-x: canvas.width/2,
-y: canvas.height/2,
-size:20,
-angle:0
+/* CAR */
+const car = {
+x: canvas.width / 2,
+y: canvas.height / 2,
+angle: 0,
+speed: 3,
+size: 12
 };
 
-let platforms = [];
+/* ROAD SETTINGS */
+const tileSize = 40;
+let tiles = [];
 
-function createPlatform(x,y){
-return {x,y,width:120,height:20};
-}
+/* DIRECTIONS */
+let directions = [
+{dx:1, dy:0},   // right
+{dx:0, dy:1},   // down
+{dx:-1, dy:0},  // left
+{dx:0, dy:-1}   // up
+];
 
-function restart(){
+let currentDir = 0;
 
-platforms = [];
+/* INIT ROAD */
+function reset(){
+
+tiles = [];
 score = 0;
 gameOver = false;
 
-let startX = canvas.width/2;
-let startY = canvas.height/2;
+currentDir = 0;
 
-for(let i=0;i<8;i++){
-platforms.push(createPlatform(startX + i*120, startY));
+let startX = Math.floor(canvas.width/2 / tileSize);
+let startY = Math.floor(canvas.height/2 / tileSize);
+
+for(let i=0;i<20;i++){
+tiles.push({x:startX + i, y:startY});
 }
 
-car.x = startX;
-car.y = startY;
+car.x = canvas.width/2;
+car.y = canvas.height/2;
 car.angle = 0;
 
 }
 
-restart();
+reset();
 
+/* INPUT */
 document.addEventListener("keydown", e=>{
-if(e.code==="Space") turningRight = true;
-if(e.code==="KeyR") restart();
+if(e.code === "Space") turningRight = true;
+if(e.code === "KeyR") reset();
 });
 
 document.addEventListener("keyup", e=>{
-if(e.code==="Space") turningRight = false;
+if(e.code === "Space") turningRight = false;
 });
 
+/* UPDATE */
 function update(){
 
 if(gameOver) return;
 
 score += 0.1;
 
+/* TURNING */
 if(turningRight){
 car.angle += 0.05;
 }else{
 car.angle -= 0.05;
 }
 
-car.x += Math.cos(car.angle) * 3;
-car.y += Math.sin(car.angle) * 3;
+/* MOVE FORWARD */
+car.x += Math.cos(car.angle) * car.speed;
+car.y += Math.sin(car.angle) * car.speed;
 
-let onPlatform = false;
+/* GENERATE ROAD */
+let last = tiles[tiles.length - 1];
 
-for(let p of platforms){
+if(Math.random() < 0.03){
+
+if(turningRight){
+currentDir = (currentDir + 1) % 4;
+}else{
+currentDir = (currentDir + 3) % 4;
+}
+
+}
+
+let dir = directions[currentDir];
+
+tiles.push({
+x: last.x + dir.dx,
+y: last.y + dir.dy
+});
+
+if(tiles.length > 100){
+tiles.shift();
+}
+
+/* COLLISION */
+let onRoad = false;
+
+for(let t of tiles){
+
+let tx = t.x * tileSize;
+let ty = t.y * tileSize;
 
 if(
-car.x > p.x &&
-car.x < p.x + p.width &&
-car.y > p.y &&
-car.y < p.y + p.height
+car.x > tx &&
+car.x < tx + tileSize &&
+car.y > ty &&
+car.y < ty + tileSize
 ){
-onPlatform = true;
+onRoad = true;
+break;
 }
 
 }
 
-if(!onPlatform){
+if(!onRoad){
 gameOver = true;
 }
 
-let last = platforms[platforms.length-1];
-
-if(last.x < canvas.width){
-
-let direction = Math.random() > 0.5 ? 1 : -1;
-
-platforms.push(createPlatform(
-last.x + 120,
-last.y + direction*80
-));
-
-platforms.shift();
-
 }
 
-}
-
+/* DRAW */
 function draw(){
 
 ctx.clearRect(0,0,canvas.width,canvas.height);
 
-for(let p of platforms){
+/* ROAD */
+for(let t of tiles){
 
-ctx.fillStyle="#3aa655";
+ctx.fillStyle = "#444";
 
-ctx.fillRect(p.x,p.y,p.width,p.height);
+ctx.fillRect(
+t.x * tileSize,
+t.y * tileSize,
+tileSize,
+tileSize
+);
 
 }
 
-ctx.fillStyle="red";
+/* CAR */
+ctx.save();
+ctx.translate(car.x, car.y);
+ctx.rotate(car.angle);
 
-ctx.fillRect(
-car.x-car.size/2,
-car.y-car.size/2,
-car.size,
-car.size
-);
+ctx.fillStyle = "red";
+ctx.fillRect(-10,-5,20,10);
 
-ctx.fillStyle="white";
+ctx.restore();
+
+/* SCORE */
+ctx.fillStyle="black";
 ctx.font="20px Arial";
 ctx.fillText("Score: "+Math.floor(score),20,40);
 
+/* GAME OVER */
 if(gameOver){
 
 ctx.font="50px Arial";
@@ -139,12 +180,11 @@ ctx.fillText("Press R to Restart",canvas.width/2-90,canvas.height/2+40);
 
 }
 
+/* LOOP */
 function loop(){
-
 update();
 draw();
 requestAnimationFrame(loop);
-
 }
 
 loop();
